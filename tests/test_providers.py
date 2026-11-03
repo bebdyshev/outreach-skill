@@ -46,12 +46,12 @@ def test_bad_config_json(reachout_home):
 
 
 def test_cli_success(capsys):
-    assert enrich_cli.main(["--company", "Acme", "--domain", "acme.com", "--person", "Jane Doe"]) == 0
+    assert enrich_cli.main(["--json", json.dumps({"company": "Acme", "domain": "acme.com", "person": "Jane Doe"})]) == 0
     assert json.loads(capsys.readouterr().out)["email"] == "jane@acme.com"
 
 
 def test_cli_bad_known_json(capsys):
-    assert enrich_cli.main(["--company", "Acme", "--domain", "acme.com", "--known", "[oops"]) == 1
+    assert enrich_cli.main(["--json", '{"company": "Acme", "domain": "acme.com", "known": [oops']) == 1
     assert "error" in json.loads(capsys.readouterr().err)
 
 
@@ -69,10 +69,10 @@ def test_config_provider_not_string(reachout_home):
 
 def test_cli_bad_config_returns_json_error(capsys, reachout_home):
     (reachout_home / "config.json").write_text("[]")
-    assert enrich_cli.main(["--company", "Acme", "--domain", "acme.com", "--person", "Jane Doe"]) == 1
+    assert enrich_cli.main(["--json", json.dumps({"company": "Acme", "domain": "acme.com", "person": "Jane Doe"})]) == 1
     assert "error" in json.loads(capsys.readouterr().err)
 
 
 def test_cli_known_wrong_shape(capsys):
-    assert enrich_cli.main(["--company", "Acme", "--domain", "acme.com", "--known", '["x"]']) == 1
+    assert enrich_cli.main(["--json", json.dumps({"company": "Acme", "domain": "acme.com", "known": ["x"]})]) == 1
     assert "error" in json.loads(capsys.readouterr().err)

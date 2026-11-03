@@ -24,8 +24,8 @@ $PY <skill>/scripts/leads.py update <id> --json - <<'REACHOUT_JSON'
 {"status": "approved"}
 REACHOUT_JSON
 $PY <skill>/scripts/leads.py list [--batch B] [--status S]
-$PY <skill>/scripts/enrich.py --company C --domain D --person "First Last" --known - <<'REACHOUT_JSON'
-[{"name": "...", "email": "..."}]
+$PY <skill>/scripts/enrich.py --json - <<'REACHOUT_JSON'
+{"company": "...", "domain": "...", "person": "First Last", "known": [{"name": "...", "email": "..."}]}
 REACHOUT_JSON
 ```
 
@@ -50,7 +50,7 @@ Follow `references/research.md` → "Finding companies". Aim for ~1.5× the requ
 ### Step 2: Find the person and email
 Follow `references/research.md` → "Finding the person". For each company:
 - Exact address found publicly → `email_confidence=found-on-web`.
-- Otherwise run `enrich.py` with any `{name, email}` pairs you collected, and use its `email` and `confidence`.
+- Otherwise run `enrich.py` with the company, domain, person, and any `{name, email}` pairs you collected as `known`, and use its `email` and `confidence`.
 - No person found → leave `person` empty.
 
 Save each with `leads.py add --json -` via the quoted heredoc (`company, domain, person, role, email, email_confidence, fit_reason, batch`).
