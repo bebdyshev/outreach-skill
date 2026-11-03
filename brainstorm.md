@@ -1,0 +1,1 @@
+I wanna make a tool to help startup founders like myself outreach businesses and people better. 
