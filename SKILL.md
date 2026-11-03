@@ -1,9 +1,9 @@
 ---
-name: reachout
+name: outreach
 description: B2B cold outreach for startup founders. Finds target companies and the right decision-maker, researches specific recent hooks, writes short personalized cold emails (plus optional LinkedIn notes), and saves them as Gmail drafts. Use when the user wants to find leads or prospects, build an outreach list, or write cold emails or LinkedIn messages to businesses.
 ---
 
-# Reachout
+# Outreach
 
 Turn a short brief ("10 Series A logistics startups in the US, pitch the API angle") into reviewed leads and Gmail drafts.
 
@@ -17,16 +17,16 @@ Turn a short brief ("10 Series A logistics startups in the US, pitch the API ang
 PY=<skill>/.venv/bin/python
 $PY <skill>/scripts/leads.py home                       # data dir + profile_exists
 $PY <skill>/scripts/leads.py check <domain>             # already contacted?
-$PY <skill>/scripts/leads.py add --json - <<'REACHOUT_JSON'          # new row (status=found)
+$PY <skill>/scripts/leads.py add --json - <<'OUTREACH_JSON'          # new row (status=found)
 {"company": "...", "domain": "..."}
-REACHOUT_JSON
-$PY <skill>/scripts/leads.py update <id> --json - <<'REACHOUT_JSON'
+OUTREACH_JSON
+$PY <skill>/scripts/leads.py update <id> --json - <<'OUTREACH_JSON'
 {"status": "approved"}
-REACHOUT_JSON
+OUTREACH_JSON
 $PY <skill>/scripts/leads.py list [--batch B] [--status S]
-$PY <skill>/scripts/enrich.py --json - <<'REACHOUT_JSON'
+$PY <skill>/scripts/enrich.py --json - <<'OUTREACH_JSON'
 {"company": "...", "domain": "...", "person": "First Last", "known": [{"name": "...", "email": "..."}]}
-REACHOUT_JSON
+OUTREACH_JSON
 ```
 
 Never put web-sourced text inside a shell argument; always pass JSON through the quoted heredoc.

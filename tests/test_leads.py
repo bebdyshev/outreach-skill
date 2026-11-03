@@ -89,27 +89,27 @@ def test_list_filters():
     assert [r["company"] for r in leads.list_rows(batch="b2")] == ["Beta"]
 
 
-def test_save_keeps_backup(reachout_home):
+def test_save_keeps_backup(outreach_home):
     leads.add(row())
     leads.add(row(company="Beta", domain="beta.com"))
-    with (reachout_home / "leads.csv.bak").open(newline="") as f:
+    with (outreach_home / "leads.csv.bak").open(newline="") as f:
         assert len(list(csv.DictReader(f))) == 1
 
 
-def test_header_mismatch_aborts(reachout_home):
-    (reachout_home / "leads.csv").write_text("a,b\n1,2\n")
+def test_header_mismatch_aborts(outreach_home):
+    (outreach_home / "leads.csv").write_text("a,b\n1,2\n")
     with pytest.raises(leads.LeadError, match="header"):
         leads.check("acme.com")
 
 
-def test_cli_add_check_and_home(capsys, reachout_home):
+def test_cli_add_check_and_home(capsys, outreach_home):
     assert leads.main(["add", "--json", json.dumps(row())]) == 0
     capsys.readouterr()
     assert leads.main(["check", "acme.com"]) == 0
     assert json.loads(capsys.readouterr().out) == {"exists": True, "status": "found"}
     assert leads.main(["home"]) == 0
     assert json.loads(capsys.readouterr().out) == {
-        "home": str(reachout_home),
+        "home": str(outreach_home),
         "profile_exists": False,
     }
 
@@ -159,20 +159,20 @@ def test_clean_rejects_pipe_in_list_item():
         leads.add(row(hooks=["a|b"]))
 
 
-def test_load_accepts_bom(reachout_home):
-    (reachout_home / "leads.csv").write_text(",".join(leads.COLUMNS) + "\n", encoding="utf-8-sig")
+def test_load_accepts_bom(outreach_home):
+    (outreach_home / "leads.csv").write_text(",".join(leads.COLUMNS) + "\n", encoding="utf-8-sig")
     assert leads.check("x.com")["exists"] is False
 
 
-def test_load_rejects_extra_cells(reachout_home):
-    (reachout_home / "leads.csv").write_text(
+def test_load_rejects_extra_cells(outreach_home):
+    (outreach_home / "leads.csv").write_text(
         ",".join(leads.COLUMNS) + "\n" + "a," * len(leads.COLUMNS) + "extra\n", encoding="utf-8")
     with pytest.raises(leads.LeadError, match="row 1 has more cells"):
         leads.load()
 
 
-def test_main_bad_encoding_is_json_error(reachout_home, capsys):
-    (reachout_home / "leads.csv").write_bytes(
+def test_main_bad_encoding_is_json_error(outreach_home, capsys):
+    (outreach_home / "leads.csv").write_bytes(
         (",".join(leads.COLUMNS) + "\n").encode() + "Jos\xe9\n".encode("latin-1"))
     code, _, err = run_main(["check", "x.com"], capsys)
     assert code == 1

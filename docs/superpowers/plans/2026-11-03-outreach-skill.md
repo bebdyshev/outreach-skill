@@ -1,18 +1,18 @@
-# Reachout Skill Implementation Plan
+# Outreach Skill Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build a Claude Code skill that finds B2B leads, researches them, writes personalized cold emails, and saves them as Gmail drafts, backed by small Python helpers for lead storage and email guessing.
 
-**Architecture:** `SKILL.md` + three reference docs carry the judgment-heavy workflow (Claude does search, research, writing, and Gmail drafts via the connector). Deterministic work lives in Python CLIs that print JSON: `leads.py` (CSV store, dedupe), `enrich.py` → `providers/` → `email_guess.py` (pattern guessing + MX check). User data lives in `~/.reachout/`, never in the repo.
+**Architecture:** `SKILL.md` + three reference docs carry the judgment-heavy workflow (Claude does search, research, writing, and Gmail drafts via the connector). Deterministic work lives in Python CLIs that print JSON: `leads.py` (CSV store, dedupe), `enrich.py` → `providers/` → `email_guess.py` (pattern guessing + MX check). User data lives in `~/.outreach/`, never in the repo.
 
 **Tech Stack:** Python 3.9+ (macOS system Python is 3.9.6; files using `X | None` hints need `from __future__ import annotations`), `dnspython`, `pytest`, Claude Code skills, Gmail connector (`create_draft`).
 
-**Spec:** `docs/superpowers/specs/2026-11-03-reachout-skill-design.md`
+**Spec:** `docs/superpowers/specs/2026-11-03-outreach-skill-design.md`
 
 ## Global Constraints
 
-- User data dir: `~/.reachout/`, overridable via `REACHOUT_HOME` env var. Nothing user-specific is committed.
+- User data dir: `~/.outreach/`, overridable via `OUTREACH_HOME` env var. Nothing user-specific is committed.
 - `leads.csv` columns, in order: `id, company, domain, person, role, email, email_confidence, status, fit_reason, hooks, sources, draft_id, batch, created_at, updated_at`
 - Statuses: `found`, `approved`, `rejected`, `no-hook`, `drafted`, `written`.
 - Confidence labels: `found-on-web`, `pattern-inferred`, `pattern-guess`, `unknown`.
@@ -27,7 +27,7 @@
 ## File Structure
 
 ```
-reachout-skill/
+outreach-skill/
 ├── .gitignore
 ├── requirements.txt
 ├── README.md
@@ -37,7 +37,7 @@ reachout-skill/
 │   ├── research.md
 │   └── writing.md
 ├── scripts/
-│   ├── paths.py           # data_dir(): resolves + creates ~/.reachout
+│   ├── paths.py           # data_dir(): resolves + creates ~/.outreach
 │   ├── leads.py           # lead store library + CLI
 │   ├── email_guess.py     # fold/split/render/detect/has_mx/guess
 │   ├── enrich.py          # CLI over providers.enrich
@@ -69,7 +69,7 @@ reachout-skill/
   - `leads.update(lead_id: str, fields: dict) -> dict` (full row)
   - `leads.list_rows(batch: str | None = None, status: str | None = None) -> list[dict]`
   - CLI: `leads.py home | check <domain> | add --json '<obj>' | update <id> --json '<obj>' | list [--batch B] [--status S]`
-  - `tests/conftest.py` fixture `reachout_home` (autouse): sets `REACHOUT_HOME` to `tmp_path`, puts `scripts/` on `sys.path`.
+  - `tests/conftest.py` fixture `outreach_home` (autouse): sets `OUTREACH_HOME` to `tmp_path`, puts `scripts/` on `sys.path`.
 
 - [ ] **Step 1: Create setup files and venv**
 
@@ -104,8 +104,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
 
 @pytest.fixture(autouse=True)
-def reachout_home(tmp_path, monkeypatch):
-    monkeypatch.setenv("REACHOUT_HOME", str(tmp_path))
+def outreach_home(tmp_path, monkeypatch):
+    monkeypatch.setenv("OUTREACH_HOME", str(tmp_path))
     return tmp_path
 ```
 
@@ -203,27 +203,27 @@ def test_list_filters():
     assert [r["company"] for r in leads.list_rows(batch="b2")] == ["Beta"]
 
 
-def test_save_keeps_backup(reachout_home):
+def test_save_keeps_backup(outreach_home):
     leads.add(row())
     leads.add(row(company="Beta", domain="beta.com"))
-    with (reachout_home / "leads.csv.bak").open(newline="") as f:
+    with (outreach_home / "leads.csv.bak").open(newline="") as f:
         assert len(list(csv.DictReader(f))) == 1
 
 
-def test_header_mismatch_aborts(reachout_home):
-    (reachout_home / "leads.csv").write_text("a,b\n1,2\n")
+def test_header_mismatch_aborts(outreach_home):
+    (outreach_home / "leads.csv").write_text("a,b\n1,2\n")
     with pytest.raises(leads.LeadError, match="header"):
         leads.check("acme.com")
 
 
-def test_cli_add_check_and_home(capsys, reachout_home):
+def test_cli_add_check_and_home(capsys, outreach_home):
     assert leads.main(["add", "--json", json.dumps(row())]) == 0
     capsys.readouterr()
     assert leads.main(["check", "acme.com"]) == 0
     assert json.loads(capsys.readouterr().out) == {"exists": True, "status": "found"}
     assert leads.main(["home"]) == 0
     assert json.loads(capsys.readouterr().out) == {
-        "home": str(reachout_home),
+        "home": str(outreach_home),
         "profile_exists": False,
     }
 
@@ -241,14 +241,14 @@ Expected: collection error, `ModuleNotFoundError: No module named 'leads'`.
 - [ ] **Step 5: Write `scripts/paths.py`**
 
 ```python
-"""Where the reachout skill keeps user data (profile, leads, drafts)."""
+"""Where the outreach skill keeps user data (profile, leads, drafts)."""
 import os
 from pathlib import Path
 
 
 def data_dir() -> Path:
-    """Return ~/.reachout (or $REACHOUT_HOME), creating it and drafts/ if needed."""
-    home = Path(os.environ.get("REACHOUT_HOME") or Path.home() / ".reachout")
+    """Return ~/.outreach (or $OUTREACH_HOME), creating it and drafts/ if needed."""
+    home = Path(os.environ.get("OUTREACH_HOME") or Path.home() / ".outreach")
     (home / "drafts").mkdir(parents=True, exist_ok=True)
     return home
 ```
@@ -256,7 +256,7 @@ def data_dir() -> Path:
 - [ ] **Step 6: Write `scripts/leads.py`**
 
 ```python
-"""Lead store for the reachout skill: one CSV row per company, deduped by domain."""
+"""Lead store for the outreach skill: one CSV row per company, deduped by domain."""
 from __future__ import annotations
 
 import argparse
@@ -398,7 +398,7 @@ def list_rows(batch: str | None = None, status: str | None = None) -> list[dict]
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(prog="leads.py", description="Reachout lead store")
+    parser = argparse.ArgumentParser(prog="leads.py", description="Outreach lead store")
     sub = parser.add_subparsers(dest="cmd", required=True)
     sub.add_parser("home", help="show data dir and whether profile.md exists")
     p = sub.add_parser("check", help="is this domain already a lead?")
@@ -713,20 +713,20 @@ def test_known_pairs_passed_through():
     assert r["confidence"] == "pattern-inferred"
 
 
-def test_unknown_provider(reachout_home):
-    (reachout_home / "config.json").write_text(json.dumps({"provider": "nope"}))
+def test_unknown_provider(outreach_home):
+    (outreach_home / "config.json").write_text(json.dumps({"provider": "nope"}))
     with pytest.raises(providers.ProviderError, match="unknown provider 'nope'"):
         providers.enrich("Acme", "acme.com", "Jane Doe")
 
 
-def test_invalid_provider_name(reachout_home):
-    (reachout_home / "config.json").write_text(json.dumps({"provider": "../evil"}))
+def test_invalid_provider_name(outreach_home):
+    (outreach_home / "config.json").write_text(json.dumps({"provider": "../evil"}))
     with pytest.raises(providers.ProviderError, match="invalid provider"):
         providers.enrich("Acme", "acme.com", "Jane Doe")
 
 
-def test_bad_config_json(reachout_home):
-    (reachout_home / "config.json").write_text("{not json")
+def test_bad_config_json(outreach_home):
+    (outreach_home / "config.json").write_text("{not json")
     with pytest.raises(providers.ProviderError, match="not valid JSON"):
         providers.provider_name()
 
@@ -849,8 +849,8 @@ Expected: `36 passed`.
 
 Run:
 ```bash
-REACHOUT_HOME=$(mktemp -d) .venv/bin/python scripts/enrich.py --company Stripe --domain stripe.com --person "Jane Doe"
-REACHOUT_HOME=$(mktemp -d) .venv/bin/python scripts/leads.py home
+OUTREACH_HOME=$(mktemp -d) .venv/bin/python scripts/enrich.py --company Stripe --domain stripe.com --person "Jane Doe"
+OUTREACH_HOME=$(mktemp -d) .venv/bin/python scripts/leads.py home
 ```
 Expected: first prints JSON with `"email": "jane@stripe.com"` and `"confidence": "pattern-guess"`; second prints `{"home": "...", "profile_exists": false}`.
 
@@ -1021,17 +1021,17 @@ git commit -m "docs: add profile interview, research, and writing guides"
 
 **Interfaces:**
 - Consumes: CLIs from Tasks 1 and 3 (`leads.py home|check|add|update|list`, `enrich.py`), docs from Task 4.
-- Produces: an installed skill at `~/.claude/skills/reachout`.
+- Produces: an installed skill at `~/.claude/skills/outreach`.
 
 - [ ] **Step 1: Write `SKILL.md`**
 
 ````markdown
 ---
-name: reachout
+name: outreach
 description: B2B cold outreach for startup founders. Finds target companies and the right decision-maker, researches specific recent hooks, writes short personalized cold emails (plus optional LinkedIn notes), and saves them as Gmail drafts. Use when the user wants to find leads or prospects, build an outreach list, or write cold emails or LinkedIn messages to businesses.
 ---
 
-# Reachout
+# Outreach
 
 Turn a short brief ("10 Series A logistics startups in the US, pitch the API angle") into reviewed leads and Gmail drafts.
 
@@ -1095,33 +1095,33 @@ Finish with a summary: drafted count, written-only count, skipped (`no-hook`, `r
 - [ ] **Step 2: Write `README.md`**
 
 ````markdown
-# reachout
+# outreach
 
 A Claude Code skill for B2B cold outreach: find leads → research hooks → write emails → Gmail drafts. Nothing is ever sent automatically.
 
 ## Install
 
 ```bash
-git clone <this repo> && cd reachout-skill
+git clone <this repo> && cd outreach-skill
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-mkdir -p ~/.claude/skills && ln -s "$PWD" ~/.claude/skills/reachout
+mkdir -p ~/.claude/skills && ln -s "$PWD" ~/.claude/skills/outreach
 ```
 
 Connect Gmail in Claude (claude.ai connectors) for drafts. Without it, messages are saved to files only.
 
 ## Use
 
-In Claude Code: *"Use reachout: find 10 seed-stage fintech startups in the UK, pitch the compliance angle."*
+In Claude Code: *"Use outreach: find 10 seed-stage fintech startups in the UK, pitch the compliance angle."*
 
-The first run interviews you and saves `~/.reachout/profile.md`. Edit it anytime.
+The first run interviews you and saves `~/.outreach/profile.md`. Edit it anytime.
 
 ## Data
 
-`~/.reachout/`: `profile.md`, `leads.csv` (open it in any spreadsheet app), `config.json`, `drafts/`.
+`~/.outreach/`: `profile.md`, `leads.csv` (open it in any spreadsheet app), `config.json`, `drafts/`.
 
 ## Adding a paid email provider
 
-Create `scripts/providers/<name>.py` with `enrich(company, domain, person, known) -> {"email", "confidence", "source"}`, then set `~/.reachout/config.json` to `{"provider": "<name>"}`.
+Create `scripts/providers/<name>.py` with `enrich(company, domain, person, known) -> {"email", "confidence", "source"}`, then set `~/.outreach/config.json` to `{"provider": "<name>"}`.
 
 ## Tests
 
@@ -1134,7 +1134,7 @@ Create `scripts/providers/<name>.py` with `enrich(company, domain, person, known
 
 Run:
 ```bash
-mkdir -p ~/.claude/skills && ln -sfn "$PWD" ~/.claude/skills/reachout && ls -l ~/.claude/skills/reachout
+mkdir -p ~/.claude/skills && ln -sfn "$PWD" ~/.claude/skills/outreach && ls -l ~/.claude/skills/outreach
 ```
 Expected: a symlink pointing to the repo.
 
@@ -1147,7 +1147,7 @@ Expected: `36 passed`.
 
 ```bash
 git add SKILL.md README.md
-git commit -m "feat: add reachout SKILL.md and README"
+git commit -m "feat: add outreach SKILL.md and README"
 ```
 
 ---
@@ -1160,9 +1160,9 @@ git commit -m "feat: add reachout SKILL.md and README"
 - Consumes: the installed skill.
 - Produces: a verified working run.
 
-- [ ] **Step 1:** In a fresh Claude Code session, ask: *"Use reachout: find 3 seed-stage B2B SaaS startups in Europe."* Confirm the profile interview runs (if no `~/.reachout/profile.md` exists) and `profile.md` gets saved.
+- [ ] **Step 1:** In a fresh Claude Code session, ask: *"Use outreach: find 3 seed-stage B2B SaaS startups in Europe."* Confirm the profile interview runs (if no `~/.outreach/profile.md` exists) and `profile.md` gets saved.
 - [ ] **Step 2:** Confirm the checkpoint table appears and the run waits. Reject one lead.
-- [ ] **Step 3:** After approval, confirm `~/.reachout/leads.csv` shows the rejected row as `rejected`, and the others as `drafted`, `written` or `no-hook`, with hooks and sources filled in.
+- [ ] **Step 3:** After approval, confirm `~/.outreach/leads.csv` shows the rejected row as `rejected`, and the others as `drafted`, `written` or `no-hook`, with hooks and sources filled in.
 - [ ] **Step 4:** Open Gmail Drafts and confirm one draft per `drafted` row. Check each body is ≤120 words and has none of the banned phrases from `writing.md`.
-- [ ] **Step 5:** Confirm `~/.reachout/drafts/<batch>.md` exists and contains every message.
+- [ ] **Step 5:** Confirm `~/.outreach/drafts/<batch>.md` exists and contains every message.
 - [ ] **Step 6:** Re-run the same brief and confirm the earlier companies are skipped (dedupe).

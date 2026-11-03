@@ -1,4 +1,4 @@
-# Reachout Skill — Design Spec
+# Outreach Skill — Design Spec
 
 **Date:** 2026-11-03
 **Status:** Draft, pending user review
@@ -25,7 +25,7 @@ A Claude Code skill that helps startup founders do B2B cold outreach. Given a sh
 
 Triggered by a brief, e.g. *"find 10 Series A logistics startups in the US, pitch the API angle."* The brief may request a count; default is 10.
 
-**Step 0 — Profile.** If `~/.reachout/profile.md` is missing, run the onboarding interview (`references/profile-interview.md`): product, ideal customer, pains solved, proof/traction, tone, an example cold email that worked (optional), sender name and signature. Save it. Otherwise load it. The brief overrides the profile wherever they conflict.
+**Step 0 — Profile.** If `~/.outreach/profile.md` is missing, run the onboarding interview (`references/profile-interview.md`): product, ideal customer, pains solved, proof/traction, tone, an example cold email that worked (optional), sender name and signature. Save it. Otherwise load it. The brief overrides the profile wherever they conflict.
 
 **Step 1 — Find companies.** Web search for companies matching brief + profile. For each: name, domain, one-line description, fit reason. Run `leads.py check <domain>` and drop any company already in `leads.csv` (any status). Collect about 1.5× the requested count, rounded up.
 
@@ -40,16 +40,16 @@ Triggered by a brief, e.g. *"find 10 Series A logistics startups in the US, pitc
 - Optional LinkedIn note ≤300 characters, when the brief asks for it or the lead has no usable email.
 - Use the profile's tone and signature. Avoid the banned-pattern list in `writing.md` (e.g. "I hope this finds you well", "quick question", fake familiarity).
 
-**Step 5 — Deliver.** For each lead with an email of confidence other than `unknown`, create a Gmail draft (never send). Update the row to `status=drafted` with `draft_id`, `hooks`, `sources`. Leads without a usable email get `status=written` and their message is saved in the batch file only. Always write the full batch (all messages, including LinkedIn notes) to `~/.reachout/drafts/<batch>.md`. Print a summary: drafted count, skipped and why, 🟡 flag on every `pattern-guess` email.
+**Step 5 — Deliver.** For each lead with an email of confidence other than `unknown`, create a Gmail draft (never send). Update the row to `status=drafted` with `draft_id`, `hooks`, `sources`. Leads without a usable email get `status=written` and their message is saved in the batch file only. Always write the full batch (all messages, including LinkedIn notes) to `~/.outreach/drafts/<batch>.md`. Print a summary: drafted count, skipped and why, 🟡 flag on every `pattern-guess` email.
 
 ## Files
 
 ### Repo (the skill)
 
-Installed by symlinking the repo to `~/.claude/skills/reachout`.
+Installed by symlinking the repo to `~/.claude/skills/outreach`.
 
 ```
-reachout-skill/
+outreach-skill/
 ├── SKILL.md
 ├── references/
 │   ├── profile-interview.md
@@ -57,7 +57,7 @@ reachout-skill/
 │   └── writing.md
 ├── scripts/
 │   ├── leads.py
-│   ├── paths.py              # data dir resolution (REACHOUT_HOME override)
+│   ├── paths.py              # data dir resolution (OUTREACH_HOME override)
 │   ├── email_guess.py
 │   ├── enrich.py             # CLI over providers.enrich
 │   └── providers/
@@ -71,7 +71,7 @@ reachout-skill/
 ### User data (outside repo)
 
 ```
-~/.reachout/
+~/.outreach/
 ├── profile.md
 ├── leads.csv
 ├── leads.csv.bak
@@ -79,7 +79,7 @@ reachout-skill/
 └── drafts/<batch>.md
 ```
 
-Created on first run if missing. Location can be overridden with the `REACHOUT_HOME` env var (used by tests). `<batch>` is `YYYY-MM-DD-<slug-of-brief>`.
+Created on first run if missing. Location can be overridden with the `OUTREACH_HOME` env var (used by tests). `<batch>` is `YYYY-MM-DD-<slug-of-brief>`.
 
 ### `leads.csv`
 
@@ -115,7 +115,7 @@ Names are lowercased and ASCII-folded (e.g. `José` → `jose`). The skill calls
 
 `enrich(company, domain, person, known=None) -> {"email", "confidence", "source", ...}` (providers may add extra keys, e.g. `candidates`)
 
-`__init__.py` reads `provider` from `~/.reachout/config.json` (default `guess`) and dispatches. `guess.py` wraps `email_guess.guess`. A future `apollo.py` implements the same function; no other code changes.
+`__init__.py` reads `provider` from `~/.outreach/config.json` (default `guess`) and dispatches. `guess.py` wraps `email_guess.guess`. A future `apollo.py` implements the same function; no other code changes.
 
 ### Confidence labels
 

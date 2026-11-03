@@ -7,6 +7,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
 
 @pytest.fixture(autouse=True)
-def reachout_home(tmp_path, monkeypatch):
-    monkeypatch.setenv("REACHOUT_HOME", str(tmp_path))
+def outreach_home(tmp_path, monkeypatch):
+    monkeypatch.setenv("OUTREACH_HOME", str(tmp_path))
     return tmp_path

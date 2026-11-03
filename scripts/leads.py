@@ -1,4 +1,4 @@
-"""Lead store for the reachout skill: one CSV row per company, deduped by domain."""
+"""Lead store for the outreach skill: one CSV row per company, deduped by domain."""
 from __future__ import annotations
 
 import argparse
@@ -163,7 +163,7 @@ def _payload(value: str):
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(prog="leads.py", description="Reachout lead store")
+    parser = argparse.ArgumentParser(prog="leads.py", description="Outreach lead store")
     sub = parser.add_subparsers(dest="cmd", required=True)
     sub.add_parser("home", help="show data dir and whether profile.md exists")
     p = sub.add_parser("check", help="is this domain already a lead?")

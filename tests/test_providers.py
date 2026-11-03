@@ -27,20 +27,20 @@ def test_known_pairs_passed_through():
     assert r["confidence"] == "pattern-inferred"
 
 
-def test_unknown_provider(reachout_home):
-    (reachout_home / "config.json").write_text(json.dumps({"provider": "nope"}))
+def test_unknown_provider(outreach_home):
+    (outreach_home / "config.json").write_text(json.dumps({"provider": "nope"}))
     with pytest.raises(providers.ProviderError, match="unknown provider 'nope'"):
         providers.enrich("Acme", "acme.com", "Jane Doe")
 
 
-def test_invalid_provider_name(reachout_home):
-    (reachout_home / "config.json").write_text(json.dumps({"provider": "../evil"}))
+def test_invalid_provider_name(outreach_home):
+    (outreach_home / "config.json").write_text(json.dumps({"provider": "../evil"}))
     with pytest.raises(providers.ProviderError, match="invalid provider"):
         providers.enrich("Acme", "acme.com", "Jane Doe")
 
 
-def test_bad_config_json(reachout_home):
-    (reachout_home / "config.json").write_text("{not json")
+def test_bad_config_json(outreach_home):
+    (outreach_home / "config.json").write_text("{not json")
     with pytest.raises(providers.ProviderError, match="not valid JSON"):
         providers.provider_name()
 
@@ -55,20 +55,20 @@ def test_cli_bad_known_json(capsys):
     assert "error" in json.loads(capsys.readouterr().err)
 
 
-def test_config_not_object(reachout_home):
-    (reachout_home / "config.json").write_text("[]")
+def test_config_not_object(outreach_home):
+    (outreach_home / "config.json").write_text("[]")
     with pytest.raises(providers.ProviderError, match="JSON object"):
         providers.provider_name()
 
 
-def test_config_provider_not_string(reachout_home):
-    (reachout_home / "config.json").write_text(json.dumps({"provider": None}))
+def test_config_provider_not_string(outreach_home):
+    (outreach_home / "config.json").write_text(json.dumps({"provider": None}))
     with pytest.raises(providers.ProviderError, match="must be a string"):
         providers.provider_name()
 
 
-def test_cli_bad_config_returns_json_error(capsys, reachout_home):
-    (reachout_home / "config.json").write_text("[]")
+def test_cli_bad_config_returns_json_error(capsys, outreach_home):
+    (outreach_home / "config.json").write_text("[]")
     assert enrich_cli.main(["--json", json.dumps({"company": "Acme", "domain": "acme.com", "person": "Jane Doe"})]) == 1
     assert "error" in json.loads(capsys.readouterr().err)
 
