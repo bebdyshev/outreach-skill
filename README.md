@@ -7,7 +7,7 @@ A Claude Code skill for B2B cold outreach: find leads → research hooks → wri
 ```bash
 git clone <this repo> && cd reachout-skill
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-mkdir -p ~/.claude/skills && ln -s "$PWD" ~/.claude/skills/reachout
+mkdir -p ~/.claude/skills && ln -sfn "$PWD" ~/.claude/skills/reachout
 ```
 
 Connect Gmail in Claude (claude.ai connectors) for drafts. Without it, messages are saved to files only.

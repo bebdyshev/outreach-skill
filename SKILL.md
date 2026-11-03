@@ -27,7 +27,11 @@ If `.venv` is missing, tell the user to run the install steps in `<skill>/README
 
 ## Workflow
 
-**Batch name:** `YYYY-MM-DD-<short-slug-of-brief>`. If the user asks to continue a batch, run `leads.py list --batch <name>` and resume from each lead's status.
+**Batch name:** `YYYY-MM-DD-<short-slug-of-brief>`. If the user asks to continue a batch, run `leads.py list --batch <name>` and resume each lead from its status:
+- `found` → the checkpoint
+- `approved` with empty `hooks` → Step 3
+- `approved` with `hooks` → Step 4
+- `drafted`, `written`, `no-hook`, `rejected` → skip (never create a second draft for a lead)
 
 ### Step 0: Profile
 Run `leads.py home`. If `profile_exists` is false, run the interview in `references/profile-interview.md` and save `profile.md` to the data dir. Otherwise read it. The brief overrides the profile where they conflict. Default count is 10.
@@ -47,7 +51,7 @@ Save each with `leads.py add` (`company, domain, person, role, email, email_conf
 Show a table: `# · company · person · role · email · confidence · fit reason`. Mark `pattern-guess` emails 🟡. Ask the user which to keep, drop, or fix. **Wait for their answer.**
 - Kept → `status=approved`. Dropped → `status=rejected`.
 - Emails the user supplies → `email_confidence=found-on-web`.
-- A kept lead still lacking a person stays `approved` but gets no email (see Step 5).
+- Every kept lead needs a person. If one has none, ask the user to name someone (then re-run `enrich.py` for the email) or drop it as `rejected`.
 
 ### Step 3: Research
 For each `approved` lead, follow `references/research.md` → "Hooks". Save with `leads.py update <id> --json '{"hooks": [...], "sources": [...]}'`. No qualifying hook → `status=no-hook` and skip the lead from here on.
