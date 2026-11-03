@@ -28,6 +28,6 @@ A hook is a specific, recent, verifiable fact that makes the email obviously wri
 **Not hooks:** "I love what you're building", their company tagline, generic industry trends, anything you can't link to.
 
 Rules:
-- Every hook needs a source URL. Store hooks and their URLs in the same order.
-- 2–4 hooks per lead. The email uses the strongest one; the rest are backup.
+- Every hook needs a source URL. Store hooks and their URLs in the same order; they're saved `|`-separated, so never put a literal `|` inside a hook.
+- Aim for 2–4 hooks per lead. The email uses the strongest one; the rest are backup. One qualifying hook is enough to proceed.
 - If nothing qualifies, set `status=no-hook`. Don't write a generic email.
