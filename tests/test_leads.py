@@ -117,3 +117,68 @@ def test_cli_add_check_and_home(capsys, reachout_home):
 def test_cli_error_exit(capsys):
     assert leads.main(["update", "nope", "--json", "{}"]) == 1
     assert "error" in json.loads(capsys.readouterr().err)
+
+
+def run_main(args, capsys):
+    code = leads.main(args)
+    out = capsys.readouterr()
+    return code, out.out, out.err
+
+
+def test_add_json_from_stdin(monkeypatch, capsys):
+    import io
+    payload = json.dumps({"company": "O'Brien Co", "domain": "ob.com",
+                          "fit_reason": "FreightCo's AP team"})
+    monkeypatch.setattr("sys.stdin", io.StringIO(payload))
+    code, out, _ = run_main(["add", "--json", "-"], capsys)
+    assert code == 0
+    assert json.loads(out)["fit_reason"] == "FreightCo's AP team"
+
+
+def test_update_json_from_stdin(monkeypatch, capsys):
+    import io
+    added = leads.add(row())
+    monkeypatch.setattr("sys.stdin", io.StringIO('{"role": "CTO\'s office"}'))
+    code, out, _ = run_main(["update", added["id"], "--json", "-"], capsys)
+    assert code == 0
+    assert json.loads(out)["role"] == "CTO's office"
+
+
+def test_clean_rejects_dict_value():
+    with pytest.raises(leads.LeadError, match="plain"):
+        leads.add(row(person={"a": 1}))
+
+
+def test_clean_rejects_dict_in_list():
+    with pytest.raises(leads.LeadError, match="plain"):
+        leads.add(row(hooks=[{"text": "x", "url": "u"}]))
+
+
+def test_clean_rejects_pipe_in_list_item():
+    with pytest.raises(leads.LeadError, match=r"\|"):
+        leads.add(row(hooks=["a|b"]))
+
+
+def test_load_accepts_bom(reachout_home):
+    (reachout_home / "leads.csv").write_text(",".join(leads.COLUMNS) + "\n", encoding="utf-8-sig")
+    assert leads.check("x.com")["exists"] is False
+
+
+def test_load_rejects_extra_cells(reachout_home):
+    (reachout_home / "leads.csv").write_text(
+        ",".join(leads.COLUMNS) + "\n" + "a," * len(leads.COLUMNS) + "extra\n", encoding="utf-8")
+    with pytest.raises(leads.LeadError, match="row 1 has more cells"):
+        leads.load()
+
+
+def test_main_bad_encoding_is_json_error(reachout_home, capsys):
+    (reachout_home / "leads.csv").write_bytes(
+        (",".join(leads.COLUMNS) + "\n").encode() + "Jos\xe9\n".encode("latin-1"))
+    code, _, err = run_main(["check", "x.com"], capsys)
+    assert code == 1
+    assert "error" in json.loads(err)
+
+
+def test_add_empty_domain_after_normalize():
+    with pytest.raises(leads.LeadError, match="missing required field: domain"):
+        leads.add(row(domain="https://"))
