@@ -4,7 +4,7 @@
 
 **Subject:** 2–5 words, lowercase is fine, specific to them. Example: `invoice recon at freightco`. No clickbait, no "quick question".
 
-**Body: 120 words max.** Structure:
+**Body: 120 words max, excluding the signature.** Structure:
 1. **Hook (1 sentence):** the strongest hook, stated plainly. "Saw FreightCo just opened a Rotterdam hub."
 2. **Pain (1–2 sentences):** the problem that hook implies for them, in their terms.
 3. **Solution (1 sentence):** what you do, tied to that pain. No feature lists.
