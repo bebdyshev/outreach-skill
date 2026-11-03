@@ -7,6 +7,7 @@ This repo is the **outreach** Claude Code skill: `SKILL.md` and `references/` te
 - `SKILL.md` - the workflow Claude follows. Treat it as code: wording changes change behavior.
 - `references/` - guides Claude reads mid-run (`profile-interview.md`, `research.md`, `writing.md`).
 - `scripts/` - `leads.py` (lead store), `email_guess.py`, `enrich.py`, `providers/`, `paths.py`.
+- `docs/` - `RELEASE-NOTES.md`, the original `brainstorm.md`, and the design spec and plan under `docs/superpowers/`. `.github/CONTRIBUTING.md` has the contribution guide.
 - `tests/` - pytest. `tests/conftest.py` puts `scripts/` on `sys.path` and points `OUTREACH_HOME` at a temp dir for every test.
 - User data lives in `~/.outreach/` (or `$OUTREACH_HOME`), never in the repo. Never commit profile, leads or drafts.
 

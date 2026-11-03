@@ -5,7 +5,7 @@ Thanks for helping. This project is small on purpose, so a short, focused change
 ## Before you start
 
 - Open an issue first for anything bigger than a bug fix or a wording tweak, so we can agree on the approach.
-- Read [AGENTS.md](AGENTS.md). It lists the rules the code and the skill text must keep, such as never sending email and passing JSON through stdin.
+- Read [AGENTS.md](../AGENTS.md). It lists the rules the code and the skill text must keep, such as never sending email and passing JSON through stdin.
 
 ## Process
 

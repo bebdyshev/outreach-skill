@@ -128,7 +128,7 @@ Then set `~/.outreach/config.json` to `{"provider": "<name>"}`. Nothing else cha
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Agents working in this repo should read [AGENTS.md](AGENTS.md) first.
+See [CONTRIBUTING.md](.github/CONTRIBUTING.md). Agents working in this repo should read [AGENTS.md](AGENTS.md) first.
 
 ## Updating
 
@@ -136,7 +136,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Agents working in this repo should read 
 cd outreach-skill && git pull && .venv/bin/pip install -r requirements.txt
 ```
 
-The skill is installed as a link to this folder, so a pull is all it takes.
+The skill is installed as a link to this folder, so a pull is all it takes. See [docs/RELEASE-NOTES.md](docs/RELEASE-NOTES.md) for what changed.
 
 ## License
 
