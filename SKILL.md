@@ -73,7 +73,7 @@ Rules:
 - Start with the batch line. No preamble, no status chatter before it.
 - Exactly three lines per lead: who, email + flag, fit.
 - Fit is one line of 15 words or fewer. Doubt gets a short marker such as "(unconfirmed)", not a sentence.
-- Flags are only 🟡 (`pattern-guess`) and ⚠ shared inbox (info@, hello@, team@, etc.). `unknown` shows as "no email".
+- Flags are only 🟡 (`pattern-guess`), ⚠ shared inbox (info@, hello@, team@, etc.) and ⚠ already does this (their own site or channel shows it, or a vendor for it; see `references/research.md`). `unknown` shows as "no email".
 - End with one "Suggest:" line and the reply example. No recap of caveats already shown.
 
 After the user answers:
@@ -85,12 +85,12 @@ After the user answers:
 For each `approved` lead, follow `references/research.md` → "Hooks". Save with `leads.py update <id> --json -` and a quoted heredoc, payload `{"hooks": [...], "sources": [...]}`. `hooks` and `sources` are parallel lists of plain strings (same order, same length); no objects, and no `|` inside items. No qualifying hook → `status=no-hook` and skip the lead from here on.
 
 ### Step 4: Write
-For each lead with hooks, write the email (and the LinkedIn note if the brief asks for one, or the lead has no usable email) per `references/writing.md`. Run its self-check.
+For each lead with hooks, write the email (and the LinkedIn note if the brief asks for one, or the lead has no usable email) per `references/writing.md`, including its "Overlap" and "Across a batch" rules. Run its self-check.
 
 ### Step 5: Deliver
 - **Email present and confidence not `unknown`:** create a Gmail draft with the Gmail connector's `create_draft` tool (load it through ToolSearch if it's deferred). Then `update` with `status=drafted, draft_id=<id>`.
 - **Otherwise:** `status=written`.
 - **If the Gmail connector is unavailable or errors:** don't abort. Mark those leads `written` and tell the user.
-- **Always:** append one section per lead (subject, body, LinkedIn note, hooks with URLs) to `<data dir>/drafts/<batch>.md` as each lead is delivered. Never overwrite or rewrite an existing batch file: on resume, earlier leads' messages are already there, and for `written` leads it is the only copy.
+- **Always:** append one section per lead (subject, body, LinkedIn note, `Angle:` line, hooks with URLs) to `<data dir>/drafts/<batch>.md` as each lead is delivered. Never overwrite or rewrite an existing batch file: on resume, earlier leads' messages are already there, and for `written` leads it is the only copy.
 
-Finish with a summary: drafted count, written-only count, skipped (`no-hook`, `rejected`) with reasons, 🟡 list of `pattern-guess` emails to double-check, and the path to the batch file.
+Finish with a summary: drafted count, written-only count, skipped (`no-hook`, `rejected`) with reasons, 🟡 list of `pattern-guess` emails to double-check, and the path to the batch file. Append the same summary to the batch file as a `## Run summary (<date>)` section, so the file records why leads were skipped.

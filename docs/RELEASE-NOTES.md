@@ -1,5 +1,12 @@
 # Release Notes
 
+## Unreleased
+
+- Hook rules: scale facts count only when tied to the pain, old dates are never quoted, and the same rule applies to every lead.
+- Already-does-it check: leads whose own site or channel shows they already do what you sell are flagged at the checkpoint, and the email acknowledges the overlap.
+- Writing: no "saw"/"caught" wording, no sentence reused within a batch, and an `Angle:` line per lead in the batch file.
+- The batch file gets a `## Run summary` section listing drafted and skipped leads with reasons.
+
 ## v0.1.0 (2026-11-03)
 
 First release.
