@@ -29,7 +29,7 @@ Triggered by a brief, e.g. *"find 10 Series A logistics startups in the US, pitc
 
 **Step 1 — Find companies.** Web search for companies matching brief + profile. For each: name, domain, one-line description, fit reason. Run `leads.py check <domain>` and drop any company already in `leads.csv` (any status). Collect about 1.5× the requested count, rounded up.
 
-**Step 2 — Find the person.** For each company, identify the best decision-maker: founder/CEO for companies under ~50 people, otherwise the head of the function the offer serves. Sources: team/about pages, LinkedIn results surfaced in search, press. While browsing, record any real email addresses seen on the company's domain. Call the provider (`enrich`) to get an email and confidence label. Add rows via `leads.py add` with `status=found`.
+**Step 2 — Find the person.** For each company, identify the best decision-maker: founder/CEO for companies under ~50 people, otherwise the head of the function the offer serves. Sources: team/about pages, LinkedIn results surfaced in search, press. While browsing, record any real email addresses seen on the company's domain together with the owner's name (`{name, email}` pairs). Call the provider (`enrich` via `scripts/enrich.py`) to get an email and confidence label. Add rows via `leads.py add` with `status=found`.
 
 **Checkpoint.** Show a table: `# · company · person · role · email · confidence · fit reason`. The user replies with edits (drop rows, swap a person, correct an email). Mark kept rows `approved` and dropped rows `rejected`. Do not continue until the user confirms.
 
@@ -57,12 +57,15 @@ reachout-skill/
 │   └── writing.md
 ├── scripts/
 │   ├── leads.py
+│   ├── paths.py              # data dir resolution (REACHOUT_HOME override)
 │   ├── email_guess.py
+│   ├── enrich.py             # CLI over providers.enrich
 │   └── providers/
 │       ├── __init__.py
 │       └── guess.py
 ├── tests/
-└── requirements.txt          # dnspython, pytest
+├── requirements.txt          # dnspython, pytest (installed into .venv/)
+└── .gitignore
 ```
 
 ### User data (outside repo)
@@ -76,7 +79,7 @@ reachout-skill/
 └── drafts/<batch>.md
 ```
 
-Created on first run if missing. `<batch>` is `YYYY-MM-DD-<slug-of-brief>`.
+Created on first run if missing. Location can be overridden with the `REACHOUT_HOME` env var (used by tests). `<batch>` is `YYYY-MM-DD-<slug-of-brief>`.
 
 ### `leads.csv`
 
@@ -99,18 +102,18 @@ Writes are atomic: copy current file to `leads.csv.bak`, write to a temp file, `
 
 ### `scripts/email_guess.py`
 
-`guess(first, last, domain, known_emails=[]) -> {"email", "confidence", "candidates", "mx_ok"}`
+`guess(first, last, domain, known=None) -> {"email", "confidence", "candidates", "mx_ok"}` where `known` is a list of `{"name", "email"}` pairs for real addresses seen on the web.
 
 1. MX lookup via `dnspython`. No MX → `confidence=unknown`, `email=None`.
-2. If `known_emails` contains addresses on the domain, detect their pattern and apply it → `pattern-inferred`.
+2. If `known` contains addresses on the domain, detect their pattern by matching each owner's name against the pattern list and apply it → `pattern-inferred`.
 3. Otherwise rank: `first`, `first.last`, `firstlast`, `flast`, `first_last` → top candidate, `pattern-guess`.
 4. If the exact target address was seen on the web, Claude records it directly as `found-on-web` without calling the guesser.
 
-Names are lowercased and ASCII-folded (e.g. `José` → `jose`). Also exposed as a CLI for the skill to call.
+Names are lowercased and ASCII-folded (e.g. `José` → `jose`). The skill calls it through `scripts/enrich.py`, not directly.
 
 ### `scripts/providers/`
 
-`enrich(company, domain, person, known_emails=[]) -> {"email", "confidence", "source"}`
+`enrich(company, domain, person, known=None) -> {"email", "confidence", "source", ...}` (providers may add extra keys, e.g. `candidates`)
 
 `__init__.py` reads `provider` from `~/.reachout/config.json` (default `guess`) and dispatches. `guess.py` wraps `email_guess.guess`. A future `apollo.py` implements the same function; no other code changes.
 
