@@ -56,7 +56,27 @@ Follow `references/research.md` → "Finding the person". For each company:
 Save each with `leads.py add --json -` via the quoted heredoc (`company, domain, person, role, email, email_confidence, fit_reason, batch`).
 
 ### ⏸ Checkpoint
-Show a table: `# · company · person · role · email · confidence · fit reason`. Mark `pattern-guess` emails 🟡. Ask the user which to keep, drop, or fix. **Wait for their answer.**
+Show the candidates in this format, then **wait for the user's answer**:
+
+```
+Batch <batch> · <N> candidates
+
+1. <Company> · <Person> (<role>)
+   <email> · <found on web | inferred | 🟡 guessed> <⚠ shared inbox, if it is one>
+   Fit: <one line>
+
+Suggest: keep 1–4, drop 5. <one short note per lead that needs a fix, if any>
+Reply e.g. "keep 1-4, drop 5".
+```
+
+Rules:
+- Start with the batch line. No preamble, no status chatter before it.
+- Exactly three lines per lead: who, email + flag, fit.
+- Fit is one line of 15 words or fewer. Doubt gets a short marker such as "(unconfirmed)", not a sentence.
+- Flags are only 🟡 (`pattern-guess`) and ⚠ shared inbox (info@, hello@, team@, etc.). `unknown` shows as "no email".
+- End with one "Suggest:" line and the reply example. No recap of caveats already shown.
+
+After the user answers:
 - Kept → `status=approved`. Dropped → `status=rejected`.
 - Emails the user supplies → `email_confidence=found-on-web`.
 - Every kept lead needs a person. If one has none, ask the user to name someone (then re-run `enrich.py` for the email) or drop it as `rejected`.
