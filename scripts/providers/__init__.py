@@ -19,9 +19,19 @@ def provider_name() -> str:
     if not path.exists():
         return DEFAULT_PROVIDER
     try:
-        return json.loads(path.read_text()).get("provider", DEFAULT_PROVIDER)
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as e:
+        raise ProviderError(f"cannot read {path}: {e}") from e
+    try:
+        data = json.loads(text)
     except json.JSONDecodeError as e:
         raise ProviderError(f"{path} is not valid JSON: {e}") from e
+    if not isinstance(data, dict):
+        raise ProviderError(f"{path} must be a JSON object")
+    name = data.get("provider", DEFAULT_PROVIDER)
+    if not isinstance(name, str):
+        raise ProviderError("provider in config.json must be a string")
+    return name
 
 
 def enrich(company: str, domain: str, person: str, known: list[dict] | None = None) -> dict:

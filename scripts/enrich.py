@@ -16,7 +16,10 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        result = enrich(args.company, args.domain, args.person, json.loads(args.known))
+        known = json.loads(args.known)
+        if not (isinstance(known, list) and all(isinstance(k, dict) for k in known)):
+            raise ProviderError('--known must be a JSON list of {"name", "email"} objects')
+        result = enrich(args.company, args.domain, args.person, known)
     except (ProviderError, json.JSONDecodeError) as e:
         print(json.dumps({"error": str(e)}), file=sys.stderr)
         return 1
