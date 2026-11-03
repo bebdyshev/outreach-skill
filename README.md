@@ -11,6 +11,7 @@ Outreach is a B2B cold outreach skill for startup founders, built for Claude Cod
 - [When something goes wrong](#when-something-goes-wrong)
 - [What's Inside](#whats-inside)
 - [Philosophy](#philosophy)
+- [Responsible use](#responsible-use)
 - [Contributing](#contributing)
 - [Updating](#updating)
 - [License](#license)
@@ -32,7 +33,7 @@ Every lead is recorded in one spreadsheet-friendly file, so you never pitch the 
 Requirements: [Claude Code](https://claude.com/claude-code), Python 3.9 or newer, and (for drafts) the Gmail connector enabled in your Claude account. Without Gmail, the messages are saved to a file instead.
 
 ```bash
-git clone <repo-url> outreach-skill && cd outreach-skill
+git clone https://github.com/Bebdyshev/outreach-skill.git && cd outreach-skill
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 mkdir -p ~/.claude/skills && ln -sfn "$PWD" ~/.claude/skills/outreach
 ```
@@ -56,14 +57,22 @@ Use outreach: find 10 seed-stage fintech startups in the UK, pitch the complianc
 The checkpoint looks like this:
 
 ```text
-Batch 2026-11-03-podcast-creators · 5 candidates
+Batch 2026-11-03-freight-saas · 3 candidates
 
-1. The Knowledge Project · Shane Parrish (host)
-   shane@fs.blog · 🟡 guessed
-   Fit: long-form interviews, YouTube channel; Shane is the only person named
+1. Northwind Freight · Jane Doe (CEO)
+   jane.doe@northwind.example · found on web
+   Fit: runs a carrier marketplace; reconciles invoices by hand
 
-Suggest: keep 1-4, drop 5.
-Reply e.g. "keep 1-4, drop 5".
+2. Harbor Logistics · Sam Lee (COO)
+   sam@harbor.example · 🟡 guessed
+   Fit: hiring two AP clerks; mentions month-end backlog
+
+3. Blue Route · Pat Kim (founder)
+   info@blueroute.example · ⚠ shared inbox
+   Fit: weak; already uses an invoice-automation vendor
+
+Suggest: keep 1-2, drop 3.
+Reply e.g. "keep 1-2, drop 3".
 ```
 
 ## Your data
@@ -125,6 +134,17 @@ Then set `~/.outreach/config.json` to `{"provider": "<name>"}`. Nothing else cha
 - **You stay in control** - One checkpoint before the expensive work, and drafts instead of sends.
 - **Judgment for Claude, bookkeeping for code** - Choosing leads and wording belongs to the model. Dedupe, CSV safety and address patterns belong to tested scripts.
 - **Say what you don't know** - Guessed addresses are flagged. Unconfirmed claims are marked.
+
+## Responsible use
+
+Cold email is regulated. You are the sender, so you are responsible for following the rules where you and your recipients are, such as CAN-SPAM in the US, GDPR and PECR in Europe and the UK, and CASL in Canada. In practice:
+
+- Say who you are and why you are writing. Don't disguise the sender or the subject.
+- Offer a clear way to opt out, and honor it. Don't contact someone twice after they decline.
+- Use real, relevant business contacts. Don't buy or scrape bulk lists.
+- Send small batches and read every draft. Guessed addresses can bounce, and too many bounces hurt your domain's reputation.
+
+Outreach only looks at publicly available information and never sends email, but nothing in it makes a message compliant for you.
 
 ## Contributing
 
